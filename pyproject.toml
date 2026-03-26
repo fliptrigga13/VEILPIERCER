@@ -1,0 +1,43 @@
+[build-system]
+requires = ["setuptools>=75.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veilpiercer"
+version = "0.2.1"
+description = "Local-first AI agent observability for Ollama, LangChain, LangGraph & CrewAI"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [{name = "VeilPiercer", email = "support@veil-piercer.com"}]
+keywords = ["llm", "observability", "ollama", "langchain", "agent-debugging", "local-first"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+langchain = ["langchain-core>=0.1.0"]
+dev = ["pytest", "build", "twine"]
+hosted = ["websockets>=12.0"]
+
+[project.urls]
+Homepage = "https://veil-piercer.com"
+Documentation = "https://veil-piercer.com/docs"
+
+[project.scripts]
+veilpiercer = "veilpiercer.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["veilpiercer*"]
+exclude = ["src*", "tests*"]
+
+[tool.setuptools.package-data]
+veilpiercer = ["static/*.html"]
