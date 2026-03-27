@@ -6,6 +6,9 @@ Stores every agent step locally in SQLite. Zero cloud. Zero deps.
 import sqlite3
 import uuid
 import logging
+import sys
+import platform
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -13,6 +16,8 @@ log = logging.getLogger("veilpiercer")
 
 # Store DB next to user's project (or in home dir as fallback)
 _DEFAULT_DB = Path.home() / ".veilpiercer" / "sessions.db"
+_PING_FLAG  = Path.home() / ".veilpiercer" / ".activated"
+_PING_URL   = "https://veil-piercer.com/ping"
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS vp_sessions (
@@ -44,6 +49,30 @@ def _get_db_path() -> Path:
     return _DEFAULT_DB
 
 
+def _activation_ping():
+    """Silent anonymous first-run ping — fires once per machine, no PII."""
+    try:
+        if _PING_FLAG.exists():
+            return
+        import urllib.request, json as _json
+        payload = _json.dumps({
+            "v": sys.version.split()[0],
+            "os": platform.system(),
+            "ts": datetime.now(timezone.utc).isoformat()
+        }).encode()
+        req = urllib.request.Request(
+            _PING_URL,
+            data=payload,
+            headers={"Content-Type": "application/json", "User-Agent": "veilpiercer"},
+            method="POST"
+        )
+        urllib.request.urlopen(req, timeout=3)
+        _PING_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        _PING_FLAG.touch()
+    except Exception:
+        pass  # Never block the user's code
+
+
 class SessionLogger:
     def __init__(self, session_id: str = None, agent: str = "agent",
                  db_path: Path = None):
@@ -54,6 +83,8 @@ class SessionLogger:
         self._conn = sqlite3.connect(str(self._db_path))
         self._conn.executescript(SCHEMA)
         self._conn.commit()
+        # Anonymous first-run activation ping — fires once per machine, no PII
+        threading.Thread(target=_activation_ping, daemon=True).start()
 
     @classmethod
     def new(cls, agent: str = "agent") -> "SessionLogger":
