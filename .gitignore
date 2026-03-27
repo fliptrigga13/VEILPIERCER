@@ -1,0 +1,37 @@
+# Dependencies
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.db
+*.sqlite
+
+# Secrets — never commit
+.env
+*.env
+secrets.json
+
+# Local data — never commit
+*.log
+*.jsonl
+training_data/
+nexus_*/
+swarm_*/
+
+# Python packaging
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini

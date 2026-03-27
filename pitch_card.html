@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VeilPiercer — Session Diff</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Syne:wght@400;700;800&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #080b10;
+    --surface:   #0d1117;
+    --border:    #1e2530;
+    --dim:       #2a3545;
+    --text:      #c8d6e8;
+    --muted:     #556070;
+    --good:      #00e5a0;
+    --good-dim:  rgba(0,229,160,0.10);
+    --good-glow: rgba(0,229,160,0.25);
+    --bad:       #ff4d6a;
+    --bad-dim:   rgba(255,77,106,0.10);
+    --bad-glow:  rgba(255,77,106,0.25);
+    --fork:      #f5a623;
+    --fork-dim:  rgba(245,166,35,0.12);
+    --cyan:      #38bdf8;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Space Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+  }
+
+  /* ── CARD ── */
+  .card {
+    width: 100%;
+    max-width: 860px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--border), 0 40px 80px rgba(0,0,0,0.6);
+    animation: rise .6s cubic-bezier(.22,1,.36,1) both;
+  }
+  @keyframes rise {
+    from { opacity:0; transform: translateY(24px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(90deg, rgba(56,189,248,0.04) 0%, transparent 60%);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--cyan);
+  }
+  .logo span { color: var(--muted); font-weight: 400; }
+  .badge {
+    font-size: 10px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--fork-dim);
+    color: var(--fork);
+    border: 1px solid rgba(245,166,35,0.3);
+  }
+
+  /* ── META ROW ── */
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .meta-item strong { color: var(--text); }
+  .meta-sep { color: var(--dim); }
+
+  /* ── PROMPT BANNER ── */
+  .prompt-banner {
+    margin: 20px 24px 0;
+    padding: 12px 16px;
+    border-radius: 6px;
+    background: rgba(56,189,248,0.05);
+    border: 1px solid rgba(56,189,248,0.15);
+    font-size: 11px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  .prompt-label {
+    color: var(--cyan);
+    font-size: 10px;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    margin-top: 1px;
+  }
+  .prompt-text { color: var(--text); line-height: 1.5; }
+
+  /* ── FORK INDICATOR ── */
+  .fork-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 24px 0;
+    font-size: 11px;
+    color: var(--fork);
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    animation: flicker 3s ease-in-out infinite;
+  }
+  @keyframes flicker {
+    0%,100% { opacity:1; }
+    50%      { opacity:.7; }
+  }
+  .fork-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, var(--fork) 0%, transparent 100%);
+    opacity: .4;
+  }
+  .fork-line.right {
+    background: linear-gradient(270deg, var(--fork) 0%, transparent 100%);
+  }
+  .fork-icon {
+    width: 28px; height: 28px;
+    border: 1px solid var(--fork);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    background: var(--fork-dim);
+    box-shadow: 0 0 12px var(--fork-dim);
+    flex-shrink: 0;
+  }
+
+  /* ── COLUMNS ── */
+  .columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px 24px 24px;
+  }
+
+  .col {
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+    transition: box-shadow .3s;
+  }
+  .col:hover { box-shadow: 0 0 24px var(--col-glow, transparent); }
+  .col.good { --col-glow: var(--good-glow); border-color: rgba(0,229,160,0.25); }
+  .col.bad  { --col-glow: var(--bad-glow);  border-color: rgba(255,77,106,0.25); }
+
+  .col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+  }
+  .good .col-header { background: var(--good-dim); color: var(--good); }
+  .bad  .col-header { background: var(--bad-dim);  color: var(--bad); }
+
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+  .good .dot { background: var(--good); box-shadow: 0 0 8px var(--good); }
+  .bad  .dot { background: var(--bad);  box-shadow: 0 0 8px var(--bad); }
+
+  .step-block {
+    padding: 14px;
+  }
+  .step-num {
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .1em;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .response-text {
+    font-size: 12px;
+    line-height: 1.7;
+    color: var(--text);
+    font-style: italic;
+  }
+  .good .response-text { border-left: 2px solid var(--good); padding-left: 10px; }
+  .bad  .response-text { border-left: 2px solid var(--bad);  padding-left: 10px; }
+
+  .verdict {
+    margin-top: 12px;
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .good .verdict { color: var(--good); }
+  .bad  .verdict { color: var(--bad);  }
+
+  /* ── FOOTER ── */
+  .footer {
+    border-top: 1px solid var(--border);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: .06em;
+  }
+  .footer a {
+    color: var(--cyan);
+    text-decoration: none;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    font-size: 10px;
+    transition: opacity .2s;
+  }
+  .footer a:hover { opacity: .7; }
+
+  /* scanline overlay */
+  .card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.03) 2px,
+      rgba(0,0,0,0.03) 4px
+    );
+    pointer-events: none;
+    border-radius: 12px;
+  }
+  .card { position: relative; }
+</style>
+</head>
+<body>
+
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="logo">Veil<span>Piercer</span> <span>// Observatory</span></div>
+    <div class="badge">⚡ Fork Detected</div>
+  </div>
+
+  <!-- META -->
+  <div class="meta">
+    <div class="meta-item">diff <strong>run-good</strong> → <strong>run-bad</strong></div>
+    <div class="meta-sep">//</div>
+    <div class="meta-item">steps compared <strong>1</strong></div>
+    <div class="meta-sep">//</div>
+    <div class="meta-item">fork at step <strong style="color:var(--fork)">1</strong></div>
+    <div class="meta-sep">//</div>
+    <div class="meta-item">last shared state <strong>none</strong></div>
+  </div>
+
+  <!-- SHARED PROMPT -->
+  <div class="prompt-banner">
+    <div class="prompt-label">Input</div>
+    <div class="prompt-text">thread about Ollama debugging</div>
+  </div>
+
+  <!-- FORK INDICATOR -->
+  <div class="fork-row">
+    <div class="fork-line"></div>
+    <div class="fork-icon">⑂</div>
+    <span>step 1 — divergence origin</span>
+    <div class="fork-line right"></div>
+  </div>
+
+  <!-- COLUMNS -->
+  <div class="columns">
+
+    <div class="col good">
+      <div class="col-header">
+        <div class="dot"></div>
+        run-good
+      </div>
+      <div class="step-block">
+        <div class="step-num">step 1 — response</div>
+        <div class="response-text">
+          "Silent divergence is the hardest part — VeilPiercer captures what each step read vs produced. (I built this — happy to answer questions)"
+        </div>
+        <div class="verdict">
+          ✓ domain signal · context-aware · credible
+        </div>
+      </div>
+    </div>
+
+    <div class="col bad">
+      <div class="col-header">
+        <div class="dot"></div>
+        run-bad
+      </div>
+      <div class="step-block">
+        <div class="step-num">step 1 — response</div>
+        <div class="response-text">
+          "Have you considered better logging tools?"
+        </div>
+        <div class="verdict">
+          ✗ zero signal · no context · rogue pattern
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <span>veilpiercer.com — agent observatory · trace · diff · quarantine</span>
+    <a href="https://veilpiercer.com">Get VeilPiercer →</a>
+  </div>
+
+</div>
+
+</body>
+</html>
