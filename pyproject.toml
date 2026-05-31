@@ -1,0 +1,48 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "veilpiercer"
+version = "1.0.0"
+description = "LLM Agent Observability — trace, debug, replay, and harden any AI agent"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Lauren Flipo", email = "76012365+fliptrigga13@users.noreply.github.com" }
+]
+maintainers = [
+    { name = "Lauren Flipo", email = "76012365+fliptrigga13@users.noreply.github.com" }
+]
+keywords = [
+    "llm", "agent", "observability", "tracing", "debugging",
+    "langchain", "langgraph", "ollama", "openai", "hallucination",
+    "ai", "machine-learning", "monitoring"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Debuggers",
+]
+requires-python = ">=3.9"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov"]
+
+[project.urls]
+Homepage = "https://veil-piercer.com"
+Repository = "https://github.com/fliptrigga13/veilpiercer"
+"Bug Tracker" = "https://github.com/fliptrigga13/veilpiercer/issues"
+Author = "https://github.com/fliptrigga13"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["veilpiercer*"]
