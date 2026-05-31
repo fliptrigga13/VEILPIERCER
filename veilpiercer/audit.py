@@ -106,14 +106,14 @@ class AuditReport:
         print(f"{'='*64}\n")
 
     # ── Markdown for GitHub Issues ───────────────────────────────────────────
-    def to_markdown(self) -> str:
+    def to_markdown(self, max_per_severity: int = 5) -> str:
         lines = [
             f"## 🔍 VeilPiercer Audit — `{self.name}`",
             f"",
             f"> Automated security & quality audit by [VeilPiercer](https://veil-piercer.com)",
             f"> Created by [Lauren Flipo](https://github.com/fliptrigga13) · [@fliptrigga13](https://github.com/fliptrigga13)",
             f"",
-            f"**Score: {self.score()}/100 (Grade {self.grade()})** · {self.files_scanned} files scanned · {len(self.findings)} issues found",
+            f"**Score: {self.score()}/100 (Grade {self.grade()})** · {self.files_scanned} files scanned · {len(self.findings)} total issues",
             f"",
         ]
 
@@ -125,30 +125,53 @@ class AuditReport:
             bucket = by_severity.get(sev, [])
             if not bucket:
                 continue
-            emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🔵"}[sev]
-            lines.append(f"### {emoji} {sev} ({len(bucket)})")
-            lines.append("")
+
+            # Deduplicate by title (collapse repeated same-title findings)
+            seen_titles = {}
+            deduped = []
             for finding in bucket:
+                key = finding.title
+                if key not in seen_titles:
+                    seen_titles[key] = 0
+                    deduped.append(finding)
+                seen_titles[key] += 1
+
+            emoji = {"CRITICAL": "🔴", "HIGH": "🟠", "MEDIUM": "🟡", "LOW": "🔵"}[sev]
+            total = len(bucket)
+            shown = deduped[:max_per_severity]
+            lines.append(f"### {emoji} {sev} ({total} total)")
+            lines.append("")
+            for finding in shown:
+                count = seen_titles.get(finding.title, 1)
                 loc = f" · `{finding.file}`" if finding.file else ""
-                lines.append(f"- **{finding.title}**{loc}")
+                suffix = f" ×{count}" if count > 1 else ""
+                lines.append(f"- **{finding.title}**{suffix}{loc}")
                 lines.append(f"  {finding.detail}")
+                lines.append("")
+
+            if len(deduped) > max_per_severity:
+                lines.append(f"  *...and {total - max_per_severity} more {sev} findings*")
                 lines.append("")
 
         lines += [
             "---",
             "",
-            "### How to fix",
+            "### Fix LLM agent issues with VeilPiercer",
             "",
-            "VeilPiercer can help with LLM agent-specific issues (hallucination detection, state persistence, session integrity):",
             "```bash",
             "pip install veilpiercer",
             "```",
-            "→ [github.com/fliptrigga13/VEILPIERCER](https://github.com/fliptrigga13/VEILPIERCER)",
             "",
-            f"*Audited {self.scanned_at} by [VeilPiercer](https://veil-piercer.com)*",
+            "VeilPiercer provides: call tracing, hallucination detection, state persistence, session hardening, and repo auditing.",
+            "",
+            "→ [github.com/fliptrigga13/VEILPIERCER](https://github.com/fliptrigga13/VEILPIERCER)  ",
+            "→ [veil-piercer.com](https://veil-piercer.com)",
+            "",
+            f"*Audited {self.scanned_at[:10]} by [VeilPiercer](https://veil-piercer.com) · [@fliptrigga13](https://github.com/fliptrigga13)*",
         ]
 
         return "\n".join(lines)
+
 
     # ── Open a GitHub Issue ──────────────────────────────────────────────────
     def open_github_issue(self, token: Optional[str] = None) -> Optional[str]:
