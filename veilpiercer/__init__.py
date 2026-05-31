@@ -9,6 +9,8 @@ from .hallucination import HallucinationDetector
 from .time_machine import TimeMachine
 from .state_guard import StateGuard
 from .session_integrity import SessionIntegrity
+from .audit import RepoAuditor, AuditReport
+
 
 __version__ = "1.0.0"
 __author__ = "Lauren Flipo"
