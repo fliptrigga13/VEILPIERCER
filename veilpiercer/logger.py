@@ -3,6 +3,7 @@ veilpiercer.logger — Core session capture engine.
 Stores every agent step locally in SQLite. Zero cloud. Zero deps.
 """
 
+import os
 import sqlite3
 import uuid
 import logging
@@ -41,16 +42,29 @@ CREATE INDEX IF NOT EXISTS idx_sess_agent ON vp_sessions(agent, created_at);
 
 
 def _get_db_path() -> Path:
-    """Use local db if in a project, otherwise ~/.veilpiercer/sessions.db"""
-    local = Path.cwd() / "vp_sessions.db"
-    if local.parent.exists():
-        return local
-    _DEFAULT_DB.parent.mkdir(parents=True, exist_ok=True)
-    return _DEFAULT_DB
+    """Where sessions are stored.
+
+    ``VEILPIERCER_DB`` wins if set; otherwise ``./vp_sessions.db`` in the
+    current working directory. Every writer (SessionLogger, the LangChain
+    callback, the Ollama hook) and every reader (CLI, dashboard) uses this.
+    """
+    env = os.environ.get("VEILPIERCER_DB")
+    if env:
+        path = Path(env).expanduser()
+        path.parent.mkdir(parents=True, exist_ok=True)
+        return path
+    return Path.cwd() / "vp_sessions.db"
+
+
+def telemetry_enabled() -> bool:
+    """Telemetry is OFF unless the user opts in with VEILPIERCER_TELEMETRY=1."""
+    return os.environ.get("VEILPIERCER_TELEMETRY", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _activation_ping():
-    """Silent anonymous first-run ping — fires once per machine, no PII."""
+    """Opt-in anonymous first-run ping (python version + OS). Off by default."""
+    if not telemetry_enabled():
+        return
     try:
         if _PING_FLAG.exists():
             return
@@ -83,12 +97,14 @@ class SessionLogger:
         self._conn = sqlite3.connect(str(self._db_path))
         self._conn.executescript(SCHEMA)
         self._conn.commit()
-        # Anonymous first-run activation ping — fires once per machine, no PII
+        # Opt-in only: does nothing unless VEILPIERCER_TELEMETRY=1
         threading.Thread(target=_activation_ping, daemon=True).start()
 
     @classmethod
-    def new(cls, agent: str = "agent") -> "SessionLogger":
-        return cls(agent=agent)
+    def new(cls, session_id: str = None, agent: str = "agent",
+            db_path: Path = None) -> "SessionLogger":
+        """``SessionLogger.new("my-run")`` names the session ``my-run``."""
+        return cls(session_id=session_id, agent=agent, db_path=db_path)
 
     def log_step(self, prompt: str, response: str,
                  state_version: str = None,
@@ -117,6 +133,7 @@ class SessionLogger:
 
 
 def list_sessions(db_path: Path = None):
+    """Most recent 50 sessions in the store."""
     db = db_path or _get_db_path()
     if not db.exists():
         return []
@@ -132,6 +149,9 @@ def list_sessions(db_path: Path = None):
 
 def find_divergence(session_a: str, session_b: str, db_path: Path = None):
     db = db_path or _get_db_path()
+    if not Path(db).exists():
+        return {"session_a": session_a, "session_b": session_b, "steps_a": [],
+                "steps_b": [], "fork_step": 0, "last_shared": None, "diverged": False}
     conn = sqlite3.connect(str(db))
 
     def _steps(sid):
@@ -158,7 +178,8 @@ def find_divergence(session_a: str, session_b: str, db_path: Path = None):
                 for r in rows]
 
     return {
+        "session_a": session_a, "session_b": session_b,
         "steps_a": _fmt(sa), "steps_b": _fmt(sb),
         "fork_step": fork_step, "last_shared": last_shared,
-        "diverged": fork_step > 0 or (sa and sb and sa[-1][3] != sb[-1][3])
+        "diverged": bool(fork_step > 0 or (sa and sb and sa[-1][3] != sb[-1][3])),
     }
