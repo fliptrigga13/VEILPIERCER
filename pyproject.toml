@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "veilpiercer"
-version = "0.2.1"
+version = "0.2.3"
 description = "Local-first AI agent observability for Ollama, LangChain, LangGraph & CrewAI"
 readme = "README.md"
 license = {text = "MIT"}
-authors = [{name = "VeilPiercer", email = "support@veil-piercer.com"}]
+authors = [{name = "VeilPiercer", email = "flipperspectives@gmail.com"}]
 keywords = ["llm", "observability", "ollama", "langchain", "agent-debugging", "local-first"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -18,6 +18,7 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
 ]
 requires-python = ">=3.9"
 dependencies = []
@@ -28,8 +29,9 @@ dev = ["pytest", "build", "twine"]
 hosted = ["websockets>=12.0"]
 
 [project.urls]
-Homepage = "https://veil-piercer.com"
-Documentation = "https://veil-piercer.com/docs"
+Homepage = "https://github.com/fliptrigga13/VEILPIERCER"
+Documentation = "https://github.com/fliptrigga13/VEILPIERCER#readme"
+Issues = "https://github.com/fliptrigga13/VEILPIERCER/issues"
 
 [project.scripts]
 veilpiercer = "veilpiercer.cli:main"

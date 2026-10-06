@@ -5,6 +5,7 @@
 [![PyPI version](https://img.shields.io/pypi/v/veilpiercer.svg)](https://pypi.org/project/veilpiercer/)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![CI](https://github.com/fliptrigga13/VEILPIERCER/actions/workflows/ci.yml/badge.svg)](https://github.com/fliptrigga13/VEILPIERCER/actions/workflows/ci.yml)
 
 When your AI agent breaks, the failure didn't happen at the error. It happened 3–5 steps earlier when agents silently diverged. VeilPiercer tells you **exactly which step went wrong, what it read, and what it produced.**
 
@@ -86,7 +87,7 @@ Every session records:
 | Retrievals | query, documents returned |
 | Errors | exception type, traceback step |
 
-All stored locally in **SQLite** (`nexus_mind.db`). Nothing leaves your machine.
+All stored locally in **SQLite**: `vp_sessions.db` in your working directory, or wherever `VEILPIERCER_DB` points. Nothing leaves your machine.
 
 ---
 
@@ -108,18 +109,19 @@ Your Agent
     ↓ (2 lines of code)
 VeilPiercerCallback
     ↓ captures every step
-nexus_mind.db (local SQLite)
+vp_sessions.db (local SQLite)
     ↓
 veilpiercer dashboard (visual diff)
 ```
 
-No backend. No cloud. No telemetry. Sessions are stored in `nexus_mind.db` in your working directory.
+No backend. No cloud. Sessions are stored in `vp_sessions.db` in your working directory (override with `VEILPIERCER_DB=/path/to/file.db`). `veilpiercer dashboard` serves the diff UI from that file on `127.0.0.1:8765`.
 
 ---
 
 ## Privacy
 
 - **100% local** — SQLite only, nothing is sent anywhere
+- **No telemetry by default.** An anonymous first-run ping (Python version + OS) exists but only fires if you set `VEILPIERCER_TELEMETRY=1`
 - Works fully offline — no API key, no account required
 - Compatible with air-gapped environments
 
@@ -138,11 +140,9 @@ No backend. No cloud. No telemetry. Sessions are stored in `nexus_mind.db` in yo
 
 ---
 
-## Hosted Dashboard (optional)
+## Feedback wanted
 
-`pip install veilpiercer` is **free forever** for local use.
-
-For **cloud dashboard, team sharing, and real-time alerts**, get lifetime access at **[veil-piercer.com](https://veil-piercer.com)** — $197 one-time, no subscription.
+`pip install veilpiercer` is free and MIT-licensed. If you run local agents (Ollama, LangGraph, CrewAI) and it helps, or doesn't, open an [issue](https://github.com/fliptrigga13/VEILPIERCER/issues) with what you traced. That shapes what gets built next.
 
 ---
 
