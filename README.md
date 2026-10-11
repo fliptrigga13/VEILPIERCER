@@ -113,7 +113,7 @@ nexus_mind.db (local SQLite)
 veilpiercer dashboard (visual diff)
 ```
 
-No backend. No cloud. No telemetry. Sessions are stored in `nexus_mind.db` in your working directory.
+No backend. No cloud. One anonymous first-run ping (no PII). Sessions are stored in `nexus_mind.db` in your working directory.
 
 ---
 
