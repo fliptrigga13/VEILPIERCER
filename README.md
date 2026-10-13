@@ -142,7 +142,7 @@ No backend. No cloud. One anonymous first-run ping (no PII). Sessions are stored
 
 `pip install veilpiercer` is **free forever** for local use.
 
-For **cloud dashboard, team sharing, and real-time alerts**, get lifetime access at **[veil-piercer.com](https://veil-piercer.com)** — $197 one-time, no subscription.
+For **cloud dashboard, team sharing, and real-time alerts**, visit **[veil-piercer.com](https://veil-piercer.com)**.
 
 ---
 
